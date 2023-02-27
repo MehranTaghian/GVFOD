@@ -12,6 +12,7 @@ import seaborn as sns
 from sklearn.metrics import precision_score, recall_score, f1_score
 from sklearn.linear_model import LinearRegression as LR
 
+import warnings
 
 @click.command()
 @click.argument("src", nargs=1)
@@ -49,18 +50,23 @@ def plot_results(json_filepath, dst, metrics, failures):
         for i, (ax, metric) in enumerate(zip(axs, metrics)):
             nor_str = outlier_names[0]
             metric_name = metric.__name__
+
             res[f"{metric_name}_{abn_str}"] = score(metric,
                                                     res["c_" + nor_str],
                                                     res["ic_" + nor_str],
                                                     res["c_" + abn_str],
                                                     res["ic_" + abn_str])
 
+            # Here it just wants to calculate the f1-score at the 1000 training size
             if metric_name == "f1_score" and abn_str == "loose_l1":
                 selection = res.loc[
                           (res["Algorithm"] == "GVFOD") & (res["Training Size"].isin([973, 1076])),
                           ["Training Size", f"{metric_name}_{abn_str}"]]
+
                 model = LR()
                 model.fit(selection["Training Size"].values.reshape(-1, 1), selection[f"{metric_name}_{abn_str}"].values.reshape(-1, 1))
+
+
                 print(f"F1 score @ 1000, {os.path.split(json_filepath)[1]}: {model.predict(np.array([[1000]]))}")
 
             p = sns.lineplot(
@@ -68,7 +74,7 @@ def plot_results(json_filepath, dst, metrics, failures):
                 y=f"{metric_name}_{abn_str}",
                 hue='Algorithm',
                 style='Class',
-                ci=95,
+                errorbar=('ci', 95),
                 data=res,
                 ax=ax,
                 legend="brief",
@@ -89,7 +95,7 @@ def plot_results(json_filepath, dst, metrics, failures):
                     line.set_lw(1.5)
                     line.set_c("k")
 
-            if i is not 1:  # put legend in Recall graph
+            if i != 1:  # put legend in Recall graph
                 p.legend_.remove()
             else:
                 ax.legend(loc="lower right", frameon=True)
@@ -139,6 +145,7 @@ def score(metric, true_negative, false_positive, true_positive, false_negative):
     for tn, fp, tp, fn in zip(true_negative, false_positive, true_positive, false_negative):
         true_vec, pred_vec = _create_true_pred_vec_from_count(tn, fp, tp, fn)
         scores.append(metric(true_vec, pred_vec))
+
     return scores
 
 
@@ -151,6 +158,7 @@ def _create_true_pred_vec_from_count(true_negative, false_positive, true_positiv
                                np.ones(false_positive),
                                np.zeros(false_negative),
                                np.ones(true_positive)]).astype(int)
+
     return true_vec, pred_vec
 
 
