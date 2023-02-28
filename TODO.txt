@@ -1,0 +1,7 @@
+Figure out the confidence intervals for precision, recall and f1-score using statistical simulations and bootstrapping.
+
+Seaborn uses bootstrapping to calculate the 95% confidence interval of data. In essence, it's a method of repeatedly
+resampling from a sample of the population, which gives good estimates of the true mean and 95% confidence.
+
+https://www.youtube.com/watch?v=nbqFQb3oIBo
+https://towardsdatascience.com/calculating-confidence-interval-with-bootstrapping-872c657c058d

@@ -12,8 +12,6 @@ import seaborn as sns
 from sklearn.metrics import precision_score, recall_score, f1_score
 from sklearn.linear_model import LinearRegression as LR
 
-import warnings
-
 @click.command()
 @click.argument("src", nargs=1)
 @click.argument("dst", nargs=1)
@@ -50,7 +48,6 @@ def plot_results(json_filepath, dst, metrics, failures):
         for i, (ax, metric) in enumerate(zip(axs, metrics)):
             nor_str = outlier_names[0]
             metric_name = metric.__name__
-
             res[f"{metric_name}_{abn_str}"] = score(metric,
                                                     res["c_" + nor_str],
                                                     res["ic_" + nor_str],
@@ -74,7 +71,7 @@ def plot_results(json_filepath, dst, metrics, failures):
                 y=f"{metric_name}_{abn_str}",
                 hue='Algorithm',
                 style='Class',
-                errorbar=('ci', 95),
+                ci=95,
                 data=res,
                 ax=ax,
                 legend="brief",
@@ -122,12 +119,14 @@ def plot_results(json_filepath, dst, metrics, failures):
             ax.spines['top'].set_visible(False)
 
             p.yaxis.label.set_visible(False)
+
         fig.tight_layout(rect=[0, 0, 1, 1])
         filename = (os.path.split(json_filepath)[1]) \
             .replace(".json", f"_{abn_str}.png") \
             .replace("train_size_delay_0_", "3-")
         print(filename)
         plt.savefig(os.path.join(dst, filename), dpi=300)
+        res.to_csv(os.path.join(dst, 'res.csv'))
 
     return res
 
