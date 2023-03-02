@@ -18,7 +18,6 @@ from sklearn.linear_model import LinearRegression as LR
 @click.argument("failures", nargs=-1)
 def main(src, dst, failures):
     p = Pool()
-
     for file in os.listdir(src):
         if file.endswith(".json"):
             p.apply_async(plot_results, [os.path.join(src, file), dst,
@@ -26,8 +25,6 @@ def main(src, dst, failures):
 
     p.close()
     p.join()
-
-    print("Plotting Complete")
 
 
 def plot_results(json_filepath, dst, metrics, failures):
@@ -57,12 +54,12 @@ def plot_results(json_filepath, dst, metrics, failures):
             # Here it just wants to calculate the f1-score at the 1000 training size
             if metric_name == "f1_score" and abn_str == "loose_l1":
                 selection = res.loc[
-                          (res["Algorithm"] == "GVFOD") & (res["Training Size"].isin([973, 1076])),
-                          ["Training Size", f"{metric_name}_{abn_str}"]]
+                    (res["Algorithm"] == "GVFOD") & (res["Training Size"].isin([973, 1076])),
+                    ["Training Size", f"{metric_name}_{abn_str}"]]
 
                 model = LR()
-                model.fit(selection["Training Size"].values.reshape(-1, 1), selection[f"{metric_name}_{abn_str}"].values.reshape(-1, 1))
-
+                model.fit(selection["Training Size"].values.reshape(-1, 1),
+                          selection[f"{metric_name}_{abn_str}"].values.reshape(-1, 1))
 
                 print(f"F1 score @ 1000, {os.path.split(json_filepath)[1]}: {model.predict(np.array([[1000]]))}")
 
