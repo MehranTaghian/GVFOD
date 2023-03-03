@@ -1,42 +1,53 @@
 import os
 import click
 from matplotlib import pyplot as plt
-import matplotlib.collections
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from pathlib import Path
 
-
-@click.command()
-@click.argument("src", nargs=1)
-@click.argument("dst", nargs=1)
 class Plot:
     def __init__(self, src, dst):
         plt.rcParams["font.family"] = "Times New Roman"
+        self.fontsize = 18
         self.data = pd.read_csv(src)
         self.dst = dst
+        fig, ax = plt.subplots(3, 2, figsize=[24, 12], sharex='col')
+        row = 0
         for c in self.data.columns.tolist():
             if 'precision' in c or 'recall' in c or 'f1_score' in c:
-                self.plot_avg_performance_heatmap(c)
-                self.plot_var_performance_stacked(c)
+                self.plot_avg_performance_heatmap(c, ax[row, 0])
+                self.plot_var_performance_stacked(c, ax[row, 1])
+                row += 1
 
-    def plot_avg_performance_heatmap(self, metric_fault):
+        ax[0, 1].legend(fontsize=10, ncol=4)
+        ax[-1, 0].set_xlabel('Training Size', fontsize=self.fontsize)
+        ax[-1, 1].set_xlabel('Training Size', fontsize=self.fontsize)
+        training_size = pd.unique(self.data['Training Size']).tolist()
+        labels = ['' for _ in range(len(training_size))]
+        labels[0], labels[int(len(labels) / 2)], labels[-1] = 50, 1050, 1950
+        ax[-1, 0].set_xticklabels(labels)
+
+        filename = (os.path.split(src)[1]) \
+            .replace(".csv", ".png") \
+            .replace("train_size_delay_0_", "3-")
+        fig.tight_layout()
+        fig.savefig(os.path.join(dst, filename), dpi=300)
+
+    def plot_avg_performance_heatmap(self, metric_fault, ax):
         avg = self.data[['Algorithm', 'Training Size', metric_fault]]
         avg = avg.groupby(['Algorithm', 'Training Size']).agg({metric_fault: 'mean'}).reset_index()
         avg = pd.pivot(avg, index='Algorithm', columns='Training Size', values=metric_fault)
-        plt.figure(figsize=(12, 5))
-        sns.heatmap(avg)
-        plt.savefig(os.path.join(self.dst, f'heatmap_{metric_fault}.jpg'), dpi=300)
-        plt.close()
-
-    def plot_var_performance_stacked(self, metric_fault):
+        sns.heatmap(avg, ax=ax)
+        metric = ' '.join(metric_fault.split('_')[:2])
+        ax.set_title(f'Average {metric}', fontsize=self.fontsize)
+        ax.set_ylabel('Algorithm', fontsize=self.fontsize)
+        ax.set_xlabel('')
+    def plot_var_performance_stacked(self, metric_fault, ax):
         var = self.data[['Algorithm', 'Training Size', metric_fault]]
         var = var.groupby(['Algorithm', 'Training Size']).agg({metric_fault: 'var'}).reset_index()
         # Decide Colors
         mycolors = sns.color_palette('tab20', 11)
-
-        # Draw Plot and Annotate
-        fig, ax = plt.subplots(1, 1, figsize=(12, 5), dpi=300)
 
         algorithms = pd.unique(var['Algorithm']).tolist()
         x = pd.unique(var['Training Size']).tolist()
@@ -46,23 +57,29 @@ class Plot:
             y[i] = np.array(var[var['Algorithm'] == a][metric_fault])
 
         # Plot for each column
-        ax = plt.gca()
         ax.stackplot(x, y, labels=algorithms, colors=mycolors, alpha=0.8)
 
+
+
         # Decorations
-        ax.set_title('Night Visitors in Australian Regions', fontsize=18)
+        ax.set_yticks(np.arange(0, 1, 0.1))  # , fontsize=10)
+        ax.set_xlim(x[0], x[-1])
+        metric = ' '.join(metric_fault.split('_')[:2])
         ax.set(ylim=[0, 1])
-        ax.legend(fontsize=10, ncol=4)
-        plt.xticks(x[::5], fontsize=10, horizontalalignment='center')
-        plt.yticks(np.arange(0, 1, 0.1), fontsize=10)
-        plt.xlim(x[0], x[-1])
+        ax.set_ylabel(f'Variance of {metric}', fontsize=self.fontsize)
 
         # Lighten borders
-        plt.gca().spines["top"].set_alpha(0)
-        plt.gca().spines["bottom"].set_alpha(.3)
-        plt.gca().spines["right"].set_alpha(0)
-        plt.gca().spines["left"].set_alpha(.3)
-        plt.savefig(os.path.join(self.dst, f'stacked_{metric_fault}.jpg'), dpi=300)
+        ax.spines["top"].set_alpha(0)
+        ax.spines["bottom"].set_alpha(.3)
+        ax.spines["right"].set_alpha(0)
+        ax.spines["left"].set_alpha(.3)
+
 
 if __name__ == "__main__":
-    p = Plot()
+    src = Path(os.path.abspath(__file__)).parent.parent
+    csv = os.path.join(src, 'csv')
+    dst = os.path.join(src, 'figures')
+    if not os.path.exists(dst):
+        os.makedirs(dst)
+    for csv_path in os.listdir(csv):
+        p = Plot(os.path.join(csv, csv_path), dst)

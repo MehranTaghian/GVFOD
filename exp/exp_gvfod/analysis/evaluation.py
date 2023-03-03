@@ -55,7 +55,10 @@ def evaluate_results(json_filepath, dst, metrics, failures):
 
                 print(f"F1 score @ 1000, {os.path.split(json_filepath)[1]}: {model.predict(np.array([[1000]]))}")
 
-        res.to_csv(os.path.join(dst, 'res.csv'))
+        csv_path = os.path.join(dst, 'csv')
+        if not os.path.exists(csv_path):
+            os.makedirs(csv_path)
+        res.to_csv(os.path.join(csv_path, (os.path.split(json_filepath)[1]).replace(".json", f"_{abn_str}.csv")))
 
     return res
 

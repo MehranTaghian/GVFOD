@@ -121,9 +121,8 @@ def plot_results(json_filepath, dst, metrics, failures):
         filename = (os.path.split(json_filepath)[1]) \
             .replace(".json", f"_{abn_str}.png") \
             .replace("train_size_delay_0_", "3-")
-        print(filename)
         plt.savefig(os.path.join(dst, filename), dpi=300)
-        res.to_csv(os.path.join(dst, 'res.csv'))
+        res.to_csv(os.path.join(dst, (os.path.split(json_filepath)[1]).replace(".json", f"_{abn_str}.csv")))
 
     return res
 
