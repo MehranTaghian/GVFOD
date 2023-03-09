@@ -7,14 +7,20 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import precision_score, recall_score, f1_score
 from sklearn.linear_model import LinearRegression as LR
+from pathlib import Path
 
 
 @click.command()
-@click.argument("src", nargs=1)
-@click.argument("dst", nargs=1)
 @click.argument("failures", nargs=-1)
-def main(src, dst, failures):
+def main(failures):
     p = Pool()
+
+    parent_path = Path(os.path.abspath(__file__)).parent.parent
+    src = os.path.join(parent_path, 'results')
+    dst = os.path.join(parent_path, 'csv')
+    if not os.path.exists(dst):
+        os.makedirs(dst)
+
     for file in os.listdir(src):
         if file.endswith(".json"):
             p.apply_async(evaluate_results, [os.path.join(src, file), dst,
@@ -55,10 +61,7 @@ def evaluate_results(json_filepath, dst, metrics, failures):
 
                 print(f"F1 score @ 1000, {os.path.split(json_filepath)[1]}: {model.predict(np.array([[1000]]))}")
 
-        csv_path = os.path.join(dst, 'csv')
-        if not os.path.exists(csv_path):
-            os.makedirs(csv_path)
-        res.to_csv(os.path.join(csv_path, (os.path.split(json_filepath)[1]).replace(".json", f"_{abn_str}.csv")))
+        res.to_csv(os.path.join(dst, (os.path.split(json_filepath)[1]).replace(".json", f"_{abn_str}.csv")))
 
     return res
 

@@ -76,8 +76,8 @@ Then, in the shell:
     ```
   or
     ```shell script
-    python -m exp.exp_gvfod.analysis.evaluation exp/exp_gvfod/results exp/exp_gvfod/figures loose_l1
-    python -m exp.exp_gvfod.analysis.plot exp/exp_gvfod/figures exp/exp_gvfod/figures
+    python -m exp.exp_gvfod.analysis.evaluation loose_l1
+    python -m exp.exp_gvfod.analysis.plot
     ```
     Figures will be placed into the same folder
 * Runtime estimates
