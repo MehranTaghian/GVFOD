@@ -35,7 +35,7 @@ class Plot:
         self.title_fontsize = 20
         self.data = pd.read_csv(src)
         self.dst = dst
-        fig, ax = plt.subplots(3, 2, figsize=[24, 12], sharex='col')
+        fig, ax = plt.subplots(3, 2, figsize=[24, 15], sharex='col')
         row = 0
         for c in self.data.columns.tolist():
             if 'precision' in c or 'recall' in c or 'f1_score' in c:
@@ -49,7 +49,7 @@ class Plot:
         ax[-1, 1].set_xlabel('Algorithms', fontsize=self.axis_fontsize)
         training_size = pd.unique(self.data['Training Size']).tolist()
         labels = ['' for _ in range(len(training_size))]
-        labels[0], labels[int(len(labels) / 2)], labels[-1] = 50, 1050, 1950
+        labels[0], labels[int(len(labels) / 2)], labels[-1] = 50, 1000, 2000
         ax[-1, 0].set_xticklabels(labels)
         filename = (os.path.split(src)[1]) \
             .replace(".csv", ".png") \
@@ -71,10 +71,11 @@ class Plot:
         var = self.data[['Algorithm', 'Training Size', metric_fault]]
         var = var.groupby(['Algorithm', 'Training Size']).agg({metric_fault: 'var'}).reset_index()
         var = convert_var_to_count(var, metric_fault)
-        sns.violinplot(data=var, x="Algorithm", y="Training Size", scale="count", ax=ax, cut=0)
+        sns.violinplot(data=var, x="Training Size", y="Algorithm", scale="count", ax=ax, cut=0)
         ax.set_xlabel('')
-        ax.set_ylabel('Training Size')
+        ax.set_ylabel('')
         ax.set_title(f"Variance of {' '.join(metric_fault.split('_')[:2])}")
+
 
     def plot_var_performance_stacked(self, metric_fault, ax):
         var = self.data[['Algorithm', 'Training Size', metric_fault]]
