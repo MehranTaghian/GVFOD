@@ -28,10 +28,9 @@ class Plot:
         # plt.rcParams["font.family"] = "fantasy"
         mpl.rcParams['font.family'] = ['serif']
         mpl.rcParams['font.serif'] = ['Times New Roman']
-        params = {'axes.titlesize': 20, 'axes.labelsize': 15, 'xtick.labelsize': 12, 'ytick.labelsize': 12}
+        params = {'axes.titlesize': 24, 'axes.labelsize': 18, 'xtick.labelsize': 15, 'ytick.labelsize': 15}
         mpl.rcParams.update(params)
 
-        self.axis_fontsize = 15
         self.title_fontsize = 20
         self.data = pd.read_csv(src)
         self.dst = dst
@@ -45,8 +44,8 @@ class Plot:
                 row += 1
 
         # ax[0, 1].legend(fontsize=10, ncol=4)
-        ax[-1, 0].set_xlabel('Training Size', fontsize=self.axis_fontsize)
-        ax[-1, 1].set_xlabel('Algorithms', fontsize=self.axis_fontsize)
+        ax[-1, 0].set_xlabel('Training Size')
+        ax[-1, 1].set_xlabel('Training Size')
         training_size = pd.unique(self.data['Training Size']).tolist()
         labels = ['' for _ in range(len(training_size))]
         labels[0], labels[int(len(labels) / 2)], labels[-1] = 50, 1000, 2000
@@ -63,7 +62,7 @@ class Plot:
         avg = pd.pivot(avg, index='Algorithm', columns='Training Size', values=metric_fault)
         sns.heatmap(avg, ax=ax)
         metric = ' '.join(metric_fault.split('_')[:2])
-        ax.set_title(f'Average {metric}')
+        ax.set_title(f'Average {metric}', loc='left')
         ax.set_ylabel('Algorithm')
         ax.set_xlabel('')
 
@@ -74,7 +73,7 @@ class Plot:
         sns.violinplot(data=var, x="Training Size", y="Algorithm", scale="count", ax=ax, cut=0)
         ax.set_xlabel('')
         ax.set_ylabel('')
-        ax.set_title(f"Variance of {' '.join(metric_fault.split('_')[:2])}")
+        ax.set_title(f"Variance of {' '.join(metric_fault.split('_')[:2])}", loc='left')
 
 
     def plot_var_performance_stacked(self, metric_fault, ax):
