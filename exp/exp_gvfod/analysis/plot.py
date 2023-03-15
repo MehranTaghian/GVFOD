@@ -30,7 +30,7 @@ class Plot:
         mpl.rcParams['font.serif'] = ['Times New Roman']
         params = {'axes.titlesize': 24, 'axes.labelsize': 18, 'xtick.labelsize': 15, 'ytick.labelsize': 15}
         mpl.rcParams.update(params)
-
+        self.pallet = 'viridis'
         self.title_fontsize = 20
         self.data = pd.read_csv(src)
         self.dst = dst
@@ -60,7 +60,7 @@ class Plot:
         avg = self.data[['Algorithm', 'Training Size', metric_fault]]
         avg = avg.groupby(['Algorithm', 'Training Size']).agg({metric_fault: 'mean'}).reset_index()
         avg = pd.pivot(avg, index='Algorithm', columns='Training Size', values=metric_fault)
-        sns.heatmap(avg, ax=ax)
+        sns.heatmap(avg, ax=ax, cmap=self.pallet)
         metric = ' '.join(metric_fault.split('_')[:2])
         ax.set_title(f'Average {metric}', loc='left')
         ax.set_ylabel('Algorithm')
@@ -70,7 +70,7 @@ class Plot:
         var = self.data[['Algorithm', 'Training Size', metric_fault]]
         var = var.groupby(['Algorithm', 'Training Size']).agg({metric_fault: 'var'}).reset_index()
         var = convert_var_to_count(var, metric_fault)
-        sns.violinplot(data=var, x="Training Size", y="Algorithm", scale="count", ax=ax, cut=0)
+        sns.violinplot(data=var, x="Training Size", y="Algorithm", scale="count", ax=ax, cut=0, cmap=self.pallet)
         ax.set_xlabel('')
         ax.set_ylabel('')
         ax.set_title(f"Variance of {' '.join(metric_fault.split('_')[:2])}", loc='left')
